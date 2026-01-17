@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クリッカーシミュレーター</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Anime.js ライブラリの読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <div class="container">
+        <div class="logo-container">
+            <img src="logo.svg" alt="クリッカーシミュレーター ロゴ" class="game-logo">
+        </div>
+        <h1>クリッカーシミュレーター</h1>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">ポイント:</span>
+                <span class="stat-value" id="points">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">毎秒:</span>
+                <span class="stat-value" id="perSecond">0</span>
+            </div>
+        </div>
+
+        <div class="click-area">
+            <button id="clickButton" class="click-button">クリック!</button>
+            <div class="click-info">
+                <p>1クリック = <span id="clickPower">1</span> ポイント</p>
+            </div>
+        </div>
+
+        <div class="upgrades">
+            <h2>アップグレード</h2>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>クリックパワー</h3>
+                    <p>1クリックあたりの獲得量を増やす</p>
+                    <p class="upgrade-level">レベル: <span id="clickPowerLevel">0</span></p>
+                </div>
+                <div class="upgrade-action">
+                    <p class="upgrade-effect">+1 パワー</p>
+                    <button id="buyClickPower" class="upgrade-button">
+                        購入: <span id="clickPowerCost">10</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>自動生成</h3>
+                    <p>1秒ごとに自動でポイントを獲得</p>
+                    <p class="upgrade-level">レベル: <span id="autoGenLevel">0</span></p>
+                </div>
+                <div class="upgrade-action">
+                    <p class="upgrade-effect">+1 毎秒</p>
+                    <button id="buyAutoGen" class="upgrade-button">
+                        購入: <span id="autoGenCost">50</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>自動クリッカー</h3>
+                    <p>1秒ごとに自動でクリック</p>
+                    <p class="upgrade-level">レベル: <span id="autoClickerLevel">0</span></p>
+                </div>
+                <div class="upgrade-action">
+                    <p class="upgrade-effect">+1 自動クリック/秒</p>
+                    <button id="buyAutoClicker" class="upgrade-button">
+                        購入: <span id="autoClickerCost">100</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>メガジェネレーター</h3>
+                    <p>大量のポイントを毎秒生成</p>
+                    <p class="upgrade-level">レベル: <span id="megaGenLevel">0</span></p>
+                </div>
+                <div class="upgrade-action">
+                    <p class="upgrade-effect">+10 毎秒</p>
+                    <button id="buyMegaGen" class="upgrade-button">
+                        購入: <span id="megaGenCost">500</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
