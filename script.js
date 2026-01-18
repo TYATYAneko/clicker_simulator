@@ -4,6 +4,9 @@ let gameState = {
     clickPower: 1,
     clickPowerLevel: 0,
     clickPowerCost: 10,
+    superClickPower: 0,
+    superClickPowerLevel: 0,
+    superClickPowerCost: 300,
     autoGen: 0,
     autoGenLevel: 0,
     autoGenCost: 50,
@@ -12,7 +15,7 @@ let gameState = {
     autoClickerCost: 100,
     megaGen: 0,
     megaGenLevel: 0,
-    megaGenCost: 500
+    megaGenCost: 500,
 };
 
 // DOM要素の取得
@@ -27,17 +30,22 @@ const elements = {
     clickPowerCost: document.getElementById('clickPowerCost'),
     buyClickPower: document.getElementById('buyClickPower'),
 
-    // 自動生成
+    // スーパークリックパワー
+    superClickPowerLevel: document.getElementById('superClickPowerLevel'),
+    superClickPowerCost: document.getElementById('superClickPowerCost'),
+    buySuperClickPower: document.getElementById('buySuperClickPower'),
+
+    // 自動クリッカー
     autoGenLevel: document.getElementById('autoGenLevel'),
     autoGenCost: document.getElementById('autoGenCost'),
     buyAutoGen: document.getElementById('buyAutoGen'),
 
-    // 自動クリッカー
+    // スーパー自動クリッカー
     autoClickerLevel: document.getElementById('autoClickerLevel'),
     autoClickerCost: document.getElementById('autoClickerCost'),
     buyAutoClicker: document.getElementById('buyAutoClicker'),
 
-    // メガジェネレーター
+    // ハイパー自動クリッカー
     megaGenLevel: document.getElementById('megaGenLevel'),
     megaGenCost: document.getElementById('megaGenCost'),
     buyMegaGen: document.getElementById('buyMegaGen')
@@ -47,7 +55,26 @@ const elements = {
 function loadGame() {
     const saved = localStorage.getItem('clickerGameState');
     if (saved) {
-        gameState = JSON.parse(saved);
+        const loadedState = JSON.parse(saved);
+        // 新しい項目がない場合はデフォルト値を使用（後から追加された項目に対応）
+        gameState = {
+            points: loadedState.points ?? 0,
+            clickPower: loadedState.clickPower ?? 1,
+            clickPowerLevel: loadedState.clickPowerLevel ?? 0,
+            clickPowerCost: loadedState.clickPowerCost ?? 10,
+            superClickPower: loadedState.superClickPower ?? 0,
+            superClickPowerLevel: loadedState.superClickPowerLevel ?? 0,
+            superClickPowerCost: loadedState.superClickPowerCost ?? 300,
+            autoGen: loadedState.autoGen ?? 0,
+            autoGenLevel: loadedState.autoGenLevel ?? 0,
+            autoGenCost: loadedState.autoGenCost ?? 50,
+            autoClicker: loadedState.autoClicker ?? 0,
+            autoClickerLevel: loadedState.autoClickerLevel ?? 0,
+            autoClickerCost: loadedState.autoClickerCost ?? 100,
+            megaGen: loadedState.megaGen ?? 0,
+            megaGenLevel: loadedState.megaGenLevel ?? 0,
+            megaGenCost: loadedState.megaGenCost ?? 500,
+        };
         updateDisplay();
     }
 }
@@ -60,7 +87,8 @@ function saveGame() {
 // 表示を更新
 function updateDisplay() {
     elements.points.textContent = Math.floor(gameState.points).toLocaleString();
-    elements.clickPower.textContent = gameState.clickPower;
+    let totalClickPower = gameState.clickPower + gameState.superClickPower;
+    elements.clickPower.textContent = totalClickPower;
 
     const perSecond = gameState.autoGen + gameState.autoClicker * gameState.clickPower + gameState.megaGen * 10;
     elements.perSecond.textContent = perSecond.toFixed(1);
@@ -70,17 +98,22 @@ function updateDisplay() {
     elements.clickPowerCost.textContent = gameState.clickPowerCost.toLocaleString();
     elements.buyClickPower.disabled = gameState.points < gameState.clickPowerCost;
 
-    // 自動生成
+    // スーパークリックパワー
+    elements.superClickPowerLevel.textContent = gameState.superClickPowerLevel;
+    elements.superClickPowerCost.textContent = gameState.superClickPowerCost.toLocaleString();
+    elements.buySuperClickPower.disabled = gameState.points < gameState.superClickPowerCost;
+
+     // 自動クリッカー
     elements.autoGenLevel.textContent = gameState.autoGenLevel;
     elements.autoGenCost.textContent = gameState.autoGenCost.toLocaleString();
     elements.buyAutoGen.disabled = gameState.points < gameState.autoGenCost;
 
-    // 自動クリッカー
+    // スーパー自動クリッカー
     elements.autoClickerLevel.textContent = gameState.autoClickerLevel;
     elements.autoClickerCost.textContent = gameState.autoClickerCost.toLocaleString();
     elements.buyAutoClicker.disabled = gameState.points < gameState.autoClickerCost;
 
-    // メガジェネレーター
+    // ハイパー自動クリッカー
     elements.megaGenLevel.textContent = gameState.megaGenLevel;
     elements.megaGenCost.textContent = gameState.megaGenCost.toLocaleString();
     elements.buyMegaGen.disabled = gameState.points < gameState.megaGenCost;
@@ -88,7 +121,8 @@ function updateDisplay() {
 
 // クリック処理
 elements.clickButton.addEventListener('click', (e) => {
-    gameState.points += gameState.clickPower;
+    let totalClickPower = gameState.clickPower + gameState.superClickPower;
+    gameState.points += totalClickPower;
     updateDisplay();
     saveGame();
 
@@ -101,7 +135,7 @@ elements.clickButton.addEventListener('click', (e) => {
     });
 
     // クリックアニメーション
-    showFloatingText('+' + gameState.clickPower, e);
+    showFloatingText('+' + totalClickPower, e);
 
     // 波紋エフェクト
     createRipple(e);
@@ -195,7 +229,22 @@ elements.buyClickPower.addEventListener('click', (e) => {
     }
 });
 
-// 自動生成購入
+// スーパークリックパワー購入
+elements.buySuperClickPower.addEventListener('click', (e) => {
+    if (gameState.points >= gameState.superClickPowerCost) {
+        gameState.points -= gameState.superClickPowerCost;
+        gameState.superClickPowerLevel++;
+        gameState.superClickPower += 5;  // +5 クリックパワー
+        gameState.superClickPowerCost = Math.floor(gameState.superClickPowerCost * 1.5);
+        updateDisplay();
+        saveGame();
+
+        // 購入成功アニメーション
+        purchaseAnimation(e.currentTarget);
+    }
+});
+
+// 自動クリッカー購入
 elements.buyAutoGen.addEventListener('click', (e) => {
     if (gameState.points >= gameState.autoGenCost) {
         gameState.points -= gameState.autoGenCost;
@@ -210,7 +259,7 @@ elements.buyAutoGen.addEventListener('click', (e) => {
     }
 });
 
-// 自動クリッカー購入
+// スーパー自動クリッカー購入
 elements.buyAutoClicker.addEventListener('click', (e) => {
     if (gameState.points >= gameState.autoClickerCost) {
         gameState.points -= gameState.autoClickerCost;
@@ -225,7 +274,7 @@ elements.buyAutoClicker.addEventListener('click', (e) => {
     }
 });
 
-// メガジェネレーター購入
+// ハイパー自動クリッカー購入
 elements.buyMegaGen.addEventListener('click', (e) => {
     if (gameState.points >= gameState.megaGenCost) {
         gameState.points -= gameState.megaGenCost;
@@ -298,7 +347,7 @@ function createSparkle(element) {
     });
 }
 
-// 自動生成ループ（1秒ごと）
+// 自動クリックループ（1秒ごと）
 setInterval(() => {
     const perSecond = gameState.autoGen + gameState.autoClicker * gameState.clickPower + gameState.megaGen * 10;
     gameState.points += perSecond;
