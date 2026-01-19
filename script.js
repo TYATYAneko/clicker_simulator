@@ -119,8 +119,8 @@ function updateDisplay() {
     elements.buyMegaGen.disabled = gameState.points < gameState.megaGenCost;
 }
 
-// クリック処理
-elements.clickButton.addEventListener('click', (e) => {
+// クリック処理の共通関数
+function handleClick(x, y) {
     let totalClickPower = gameState.clickPower + gameState.superClickPower;
     gameState.points += totalClickPower;
     updateDisplay();
@@ -134,12 +134,33 @@ elements.clickButton.addEventListener('click', (e) => {
         easing: 'easeOutElastic(1, .5)'
     });
 
-    // クリックアニメーション
-    showFloatingText('+' + totalClickPower, e);
+    // クリックアニメーション（位置情報付き）
+    const fakeEvent = { clientX: x, clientY: y };
+    showFloatingText('+' + totalClickPower, fakeEvent);
 
     // 波紋エフェクト
-    createRipple(e);
+    createRipple(fakeEvent);
+}
+
+// PC用クリック処理
+elements.clickButton.addEventListener('click', (e) => {
+    // タッチデバイスの場合はtouchstartで処理するのでスキップ
+    if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) {
+        return;
+    }
+    handleClick(e.clientX, e.clientY);
 });
+
+// スマホ用マルチタッチ処理
+elements.clickButton.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // デフォルトの動作を防ぐ
+
+    // 全てのタッチポイントに対してクリック処理を実行
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        handleClick(touch.clientX, touch.clientY);
+    }
+}, { passive: false });
 
 // 浮遊テキストを表示
 function showFloatingText(text, event) {
