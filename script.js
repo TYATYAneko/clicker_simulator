@@ -1,3 +1,34 @@
+// 効果音システム（音声ファイル使用）
+const sounds = {
+    click: new Audio('SoundEffects/Click.mp3'),
+    upgrade: new Audio('SoundEffects/Upgrade.mp3'),
+    error: new Audio('SoundEffects/Error.mp3')
+};
+
+// 効果音を初期化（音量設定など）
+function initAudio() {
+    sounds.click.volume = 0.5;
+    sounds.upgrade.volume = 0.5;
+}
+
+// クリック音を再生
+function playClickSound() {
+    sounds.click.currentTime = 0;  // 最初から再生
+    sounds.click.play().catch(() => {});  // 再生エラーを無視
+}
+
+// 購入音を再生
+function playPurchaseSound() {
+    sounds.upgrade.currentTime = 0;  // 最初から再生
+    sounds.upgrade.play().catch(() => {});  // 再生エラーを無視
+}
+
+// 購入失敗音を再生（クリック音を低い音程で再生）
+function playErrorSound() {
+    sounds.error.currentTime = 0;  // 最初から再生
+    sounds.error.play().catch(() => {});  // 再生エラーを無視
+}
+
 // ゲームの状態
 let gameState = {
     points: 0,
@@ -96,31 +127,35 @@ function updateDisplay() {
     // クリックパワー
     elements.clickPowerLevel.textContent = gameState.clickPowerLevel;
     elements.clickPowerCost.textContent = gameState.clickPowerCost.toLocaleString();
-    elements.buyClickPower.disabled = gameState.points < gameState.clickPowerCost;
+    elements.buyClickPower.classList.toggle('insufficient', gameState.points < gameState.clickPowerCost);
 
     // スーパークリックパワー
     elements.superClickPowerLevel.textContent = gameState.superClickPowerLevel;
     elements.superClickPowerCost.textContent = gameState.superClickPowerCost.toLocaleString();
-    elements.buySuperClickPower.disabled = gameState.points < gameState.superClickPowerCost;
+    elements.buySuperClickPower.classList.toggle('insufficient', gameState.points < gameState.superClickPowerCost);
 
      // 自動クリッカー
     elements.autoGenLevel.textContent = gameState.autoGenLevel;
     elements.autoGenCost.textContent = gameState.autoGenCost.toLocaleString();
-    elements.buyAutoGen.disabled = gameState.points < gameState.autoGenCost;
+    elements.buyAutoGen.classList.toggle('insufficient', gameState.points < gameState.autoGenCost);
 
     // スーパー自動クリッカー
     elements.autoClickerLevel.textContent = gameState.autoClickerLevel;
     elements.autoClickerCost.textContent = gameState.autoClickerCost.toLocaleString();
-    elements.buyAutoClicker.disabled = gameState.points < gameState.autoClickerCost;
+    elements.buyAutoClicker.classList.toggle('insufficient', gameState.points < gameState.autoClickerCost);
 
     // ハイパー自動クリッカー
     elements.megaGenLevel.textContent = gameState.megaGenLevel;
     elements.megaGenCost.textContent = gameState.megaGenCost.toLocaleString();
-    elements.buyMegaGen.disabled = gameState.points < gameState.megaGenCost;
+    elements.buyMegaGen.classList.toggle('insufficient', gameState.points < gameState.megaGenCost);
 }
 
 // クリック処理の共通関数
 function handleClick(x, y) {
+    // 効果音を初期化＆再生
+    initAudio();
+    playClickSound();
+
     let totalClickPower = gameState.clickPower + gameState.superClickPower;
     gameState.points += totalClickPower;
     updateDisplay();
@@ -237,6 +272,7 @@ function createRipple(event) {
 
 // クリックパワー購入
 elements.buyClickPower.addEventListener('click', (e) => {
+    initAudio();
     if (gameState.points >= gameState.clickPowerCost) {
         gameState.points -= gameState.clickPowerCost;
         gameState.clickPowerLevel++;
@@ -245,13 +281,16 @@ elements.buyClickPower.addEventListener('click', (e) => {
         updateDisplay();
         saveGame();
 
-        // 購入成功アニメーション
+        playPurchaseSound();
         purchaseAnimation(e.currentTarget);
+    } else {
+        playErrorSound();
     }
 });
 
 // スーパークリックパワー購入
 elements.buySuperClickPower.addEventListener('click', (e) => {
+    initAudio();
     if (gameState.points >= gameState.superClickPowerCost) {
         gameState.points -= gameState.superClickPowerCost;
         gameState.superClickPowerLevel++;
@@ -260,13 +299,16 @@ elements.buySuperClickPower.addEventListener('click', (e) => {
         updateDisplay();
         saveGame();
 
-        // 購入成功アニメーション
+        playPurchaseSound();
         purchaseAnimation(e.currentTarget);
+    } else {
+        playErrorSound();
     }
 });
 
 // 自動クリッカー購入
 elements.buyAutoGen.addEventListener('click', (e) => {
+    initAudio();
     if (gameState.points >= gameState.autoGenCost) {
         gameState.points -= gameState.autoGenCost;
         gameState.autoGenLevel++;
@@ -275,13 +317,16 @@ elements.buyAutoGen.addEventListener('click', (e) => {
         updateDisplay();
         saveGame();
 
-        // 購入成功アニメーション
+        playPurchaseSound();
         purchaseAnimation(e.currentTarget);
+    } else {
+        playErrorSound();
     }
 });
 
 // スーパー自動クリッカー購入
 elements.buyAutoClicker.addEventListener('click', (e) => {
+    initAudio();
     if (gameState.points >= gameState.autoClickerCost) {
         gameState.points -= gameState.autoClickerCost;
         gameState.autoClickerLevel++;
@@ -290,13 +335,16 @@ elements.buyAutoClicker.addEventListener('click', (e) => {
         updateDisplay();
         saveGame();
 
-        // 購入成功アニメーション
+        playPurchaseSound();
         purchaseAnimation(e.currentTarget);
+    } else {
+        playErrorSound();
     }
 });
 
 // ハイパー自動クリッカー購入
 elements.buyMegaGen.addEventListener('click', (e) => {
+    initAudio();
     if (gameState.points >= gameState.megaGenCost) {
         gameState.points -= gameState.megaGenCost;
         gameState.megaGenLevel++;
@@ -305,8 +353,10 @@ elements.buyMegaGen.addEventListener('click', (e) => {
         updateDisplay();
         saveGame();
 
-        // 購入成功アニメーション
+        playPurchaseSound();
         purchaseAnimation(e.currentTarget);
+    } else {
+        playErrorSound();
     }
 });
 

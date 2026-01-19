@@ -194,13 +194,15 @@ h1 {
     transform: scale(0.95);
 }
 
-.upgrade-button:disabled {
+.upgrade-button:disabled,
+.upgrade-button.insufficient {
     background: #ccc;
     cursor: not-allowed;
     opacity: 0.6;
 }
 
-.upgrade-button:disabled:hover {
+.upgrade-button:disabled:hover,
+.upgrade-button.insufficient:hover {
     transform: none;
 }
 
