@@ -5,28 +5,34 @@ const sounds = {
     error: new Audio('SoundEffects/Error.mp3')
 };
 
+// 音声ファイルをプリロード
+sounds.click.preload = 'auto';
+sounds.upgrade.preload = 'auto';
+sounds.error.preload = 'auto';
+
 // 効果音を初期化（音量設定など）
 function initAudio() {
     sounds.click.volume = 0.5;
     sounds.upgrade.volume = 0.5;
+    sounds.error.volume = 0.5;
 }
 
 // クリック音を再生
 function playClickSound() {
     sounds.click.currentTime = 0;  // 最初から再生
-    sounds.click.play().catch(() => {});  // 再生エラーを無視
+    sounds.click.play().catch(e => console.log('Click sound error:', e));
 }
 
 // 購入音を再生
 function playPurchaseSound() {
     sounds.upgrade.currentTime = 0;  // 最初から再生
-    sounds.upgrade.play().catch(() => {});  // 再生エラーを無視
+    sounds.upgrade.play().catch(e => console.log('Upgrade sound error:', e));
 }
 
-// 購入失敗音を再生（クリック音を低い音程で再生）
+// 購入失敗音を再生
 function playErrorSound() {
     sounds.error.currentTime = 0;  // 最初から再生
-    sounds.error.play().catch(() => {});  // 再生エラーを無視
+    sounds.error.play().catch(e => console.log('Error sound error:', e));
 }
 
 // ゲームの状態
