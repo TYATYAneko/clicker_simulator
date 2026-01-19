@@ -1,38 +1,56 @@
-// 効果音システム（音声ファイル使用）
-const sounds = {
-    click: new Audio('SoundEffects/Click.mp3'),
-    upgrade: new Audio('SoundEffects/Upgrade.mp3'),
-    error: new Audio('SoundEffects/Error.mp3')
+// 効果音システム（オーディオプール使用で連続再生対応）
+const POOL_SIZE = 5;  // 同時再生可能な数
+
+// オーディオプールを作成
+function createAudioPool(src, size) {
+    const pool = [];
+    for (let i = 0; i < size; i++) {
+        const audio = new Audio(src);
+        audio.preload = 'auto';
+        audio.volume = 0.5;
+        pool.push(audio);
+    }
+    return pool;
+}
+
+// 各効果音のプール
+const soundPools = {
+    click: createAudioPool('SoundEffects/Click.mp3', POOL_SIZE),
+    upgrade: createAudioPool('SoundEffects/Upgrade.mp3', 3),
+    error: createAudioPool('SoundEffects/Error.mp3', 3)
 };
 
-// 音声ファイルをプリロード
-sounds.click.preload = 'auto';
-sounds.upgrade.preload = 'auto';
-sounds.error.preload = 'auto';
+// プール内のインデックス
+const poolIndex = { click: 0, upgrade: 0, error: 0 };
 
-// 効果音を初期化（音量設定など）
-function initAudio() {
-    sounds.click.volume = 0.5;
-    sounds.upgrade.volume = 0.5;
-    sounds.error.volume = 0.5;
+// プールから音声を再生
+function playFromPool(poolName) {
+    const pool = soundPools[poolName];
+    const audio = pool[poolIndex[poolName]];
+
+    // 次のインデックスへ（ループ）
+    poolIndex[poolName] = (poolIndex[poolName] + 1) % pool.length;
+
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
 }
+
+// 効果音を初期化（互換性のため残す）
+function initAudio() {}
 
 // クリック音を再生
 function playClickSound() {
-    sounds.click.currentTime = 0;  // 最初から再生
-    sounds.click.play().catch(e => console.log('Click sound error:', e));
+    playFromPool('click');
 }
 
 // 購入音を再生
 function playPurchaseSound() {
-    sounds.upgrade.currentTime = 0;  // 最初から再生
-    sounds.upgrade.play().catch(e => console.log('Upgrade sound error:', e));
+    playFromPool('upgrade');
 }
 
 // 購入失敗音を再生
 function playErrorSound() {
-    sounds.error.currentTime = 0;  // 最初から再生
-    sounds.error.play().catch(e => console.log('Error sound error:', e));
+    playFromPool('error');
 }
 
 // ゲームの状態
