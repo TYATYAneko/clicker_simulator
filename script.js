@@ -1,5 +1,5 @@
 // 効果音システム（オーディオプール使用で連続再生対応）
-const POOL_SIZE = 5;  // 同時再生可能な数
+const POOL_SIZE = 3;  // 同時再生可能な数（軽量化のため削減）
 
 // オーディオプールを作成
 function createAudioPool(src, size) {
@@ -16,8 +16,8 @@ function createAudioPool(src, size) {
 // 各効果音のプール
 const soundPools = {
     click: createAudioPool('SoundEffects/Click.mp3', POOL_SIZE),
-    upgrade: createAudioPool('SoundEffects/Upgrade.mp3', 3),
-    error: createAudioPool('SoundEffects/Error.mp3', 3)
+    upgrade: createAudioPool('SoundEffects/Upgrade.mp3', 2),
+    error: createAudioPool('SoundEffects/Error.mp3', 2)
 };
 
 // プール内のインデックス
@@ -34,9 +34,6 @@ function playFromPool(poolName) {
     audio.currentTime = 0;
     audio.play().catch(() => {});
 }
-
-// 効果音を初期化（互換性のため残す）
-function initAudio() {}
 
 // クリック音を再生
 function playClickSound() {
@@ -176,29 +173,14 @@ function updateDisplay() {
 
 // クリック処理の共通関数
 function handleClick(x, y) {
-    // 効果音を初期化＆再生
-    initAudio();
     playClickSound();
 
     let totalClickPower = gameState.clickPower + gameState.superClickPower;
     gameState.points += totalClickPower;
     updateDisplay();
-    saveGame();
 
-    // ボタンのパルスアニメーション
-    anime({
-        targets: elements.clickButton,
-        scale: [1, 0.9, 1.1, 1],
-        duration: 300,
-        easing: 'easeOutElastic(1, .5)'
-    });
-
-    // クリックアニメーション（位置情報付き）
-    const fakeEvent = { clientX: x, clientY: y };
-    showFloatingText('+' + totalClickPower, fakeEvent);
-
-    // 波紋エフェクト
-    createRipple(fakeEvent);
+    // 浮遊テキストのみ表示（波紋エフェクトは削除して軽量化）
+    showFloatingText('+' + totalClickPower, x, y);
 }
 
 // PC用クリック処理
@@ -221,83 +203,25 @@ elements.clickButton.addEventListener('touchstart', (e) => {
     }
 }, { passive: false });
 
-// 浮遊テキストを表示
-function showFloatingText(text, event) {
+// 浮遊テキストを表示（CSSアニメーション使用で軽量化）
+function showFloatingText(text, x, y) {
     const floatingText = document.createElement('div');
     floatingText.textContent = text;
     floatingText.className = 'floating-text';
-    floatingText.style.position = 'fixed';
-
-    // クリック位置を取得
-    const x = event ? event.clientX : window.innerWidth / 2;
-    const y = event ? event.clientY : window.innerHeight / 2;
-
     floatingText.style.left = x + 'px';
     floatingText.style.top = y + 'px';
-    floatingText.style.transform = 'translate(-50%, -50%)';
-    floatingText.style.color = 'white';
-    floatingText.style.fontSize = '2em';
-    floatingText.style.fontWeight = 'bold';
-    floatingText.style.pointerEvents = 'none';
-    floatingText.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
-    floatingText.style.opacity = '0';
-    floatingText.style.zIndex = '1000';
 
     document.body.appendChild(floatingText);
 
-    // アニメーション
-    anime({
-        targets: floatingText,
-        translateY: -100,
-        opacity: [0, 1, 1, 0],
-        scale: [0.5, 1.2, 1],
-        rotate: () => anime.random(-15, 15),
-        duration: 1500,
-        easing: 'easeOutExpo',
-        complete: () => {
-            document.body.removeChild(floatingText);
-        }
-    });
-}
-
-// 波紋エフェクトを作成
-function createRipple(event) {
-    const ripple = document.createElement('div');
-    ripple.className = 'ripple';
-    ripple.style.position = 'fixed';
-
-    const x = event.clientX;
-    const y = event.clientY;
-
-    ripple.style.left = x + 'px';
-    ripple.style.top = y + 'px';
-    ripple.style.transform = 'translate(-50%, -50%)';
-    ripple.style.width = '20px';
-    ripple.style.height = '20px';
-    ripple.style.borderRadius = '50%';
-    ripple.style.border = '3px solid rgba(255, 255, 255, 0.8)';
-    ripple.style.pointerEvents = 'none';
-    ripple.style.zIndex = '999';
-
-    document.body.appendChild(ripple);
-
-    // 波紋アニメーション
-    anime({
-        targets: ripple,
-        scale: [1, 15],
-        opacity: [1, 0],
-        duration: 800,
-        easing: 'easeOutExpo',
-        complete: () => {
-            document.body.removeChild(ripple);
-        }
-    });
+    // アニメーション終了後に削除
+    setTimeout(() => {
+        floatingText.remove();
+    }, 600);
 }
 
 // クリックパワー購入
 elements.buyClickPower.addEventListener('click', (e) => {
-    initAudio();
-    if (gameState.points >= gameState.clickPowerCost) {
+        if (gameState.points >= gameState.clickPowerCost) {
         gameState.points -= gameState.clickPowerCost;
         gameState.clickPowerLevel++;
         gameState.clickPower++;
@@ -314,8 +238,7 @@ elements.buyClickPower.addEventListener('click', (e) => {
 
 // スーパークリックパワー購入
 elements.buySuperClickPower.addEventListener('click', (e) => {
-    initAudio();
-    if (gameState.points >= gameState.superClickPowerCost) {
+        if (gameState.points >= gameState.superClickPowerCost) {
         gameState.points -= gameState.superClickPowerCost;
         gameState.superClickPowerLevel++;
         gameState.superClickPower += 5;  // +5 クリックパワー
@@ -332,8 +255,7 @@ elements.buySuperClickPower.addEventListener('click', (e) => {
 
 // 自動クリッカー購入
 elements.buyAutoGen.addEventListener('click', (e) => {
-    initAudio();
-    if (gameState.points >= gameState.autoGenCost) {
+        if (gameState.points >= gameState.autoGenCost) {
         gameState.points -= gameState.autoGenCost;
         gameState.autoGenLevel++;
         gameState.autoGen++;
@@ -350,8 +272,7 @@ elements.buyAutoGen.addEventListener('click', (e) => {
 
 // スーパー自動クリッカー購入
 elements.buyAutoClicker.addEventListener('click', (e) => {
-    initAudio();
-    if (gameState.points >= gameState.autoClickerCost) {
+        if (gameState.points >= gameState.autoClickerCost) {
         gameState.points -= gameState.autoClickerCost;
         gameState.autoClickerLevel++;
         gameState.autoClicker++;
@@ -368,8 +289,7 @@ elements.buyAutoClicker.addEventListener('click', (e) => {
 
 // ハイパー自動クリッカー購入
 elements.buyMegaGen.addEventListener('click', (e) => {
-    initAudio();
-    if (gameState.points >= gameState.megaGenCost) {
+        if (gameState.points >= gameState.megaGenCost) {
         gameState.points -= gameState.megaGenCost;
         gameState.megaGenLevel++;
         gameState.megaGen++;
@@ -384,70 +304,21 @@ elements.buyMegaGen.addEventListener('click', (e) => {
     }
 });
 
-// 購入成功アニメーション
+// 購入成功アニメーション（CSSクラスで軽量化）
 function purchaseAnimation(button) {
-    // ボタンのフラッシュアニメーション
-    anime({
-        targets: button,
-        scale: [1, 1.1, 1],
-        backgroundColor: ['#667eea', '#4ade80', '#667eea'],
-        duration: 500,
-        easing: 'easeInOutQuad'
-    });
-
-    // キラキラエフェクト
-    for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-            createSparkle(button);
-        }, i * 50);
-    }
-}
-
-// キラキラエフェクトを作成
-function createSparkle(element) {
-    const sparkle = document.createElement('div');
-    sparkle.textContent = '✨';
-    sparkle.style.position = 'fixed';
-
-    const rect = element.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    sparkle.style.left = x + 'px';
-    sparkle.style.top = y + 'px';
-    sparkle.style.fontSize = '1.5em';
-    sparkle.style.pointerEvents = 'none';
-    sparkle.style.zIndex = '1001';
-
-    document.body.appendChild(sparkle);
-
-    // ランダムな方向に飛ばす
-    const angle = anime.random(0, 360);
-    const distance = anime.random(50, 100);
-    const tx = Math.cos(angle * Math.PI / 180) * distance;
-    const ty = Math.sin(angle * Math.PI / 180) * distance;
-
-    anime({
-        targets: sparkle,
-        translateX: tx,
-        translateY: ty,
-        scale: [0, 1, 0],
-        opacity: [0, 1, 0],
-        rotate: anime.random(-180, 180),
-        duration: 1000,
-        easing: 'easeOutExpo',
-        complete: () => {
-            document.body.removeChild(sparkle);
-        }
-    });
+    button.classList.add('purchase-flash');
+    setTimeout(() => {
+        button.classList.remove('purchase-flash');
+    }, 300);
 }
 
 // 自動クリックループ（1秒ごと）
 setInterval(() => {
     const perSecond = gameState.autoGen + gameState.autoClicker * gameState.clickPower + gameState.megaGen * 10;
-    gameState.points += perSecond;
-    updateDisplay();
-    saveGame();
+    if (perSecond > 0) {
+        gameState.points += perSecond;
+        updateDisplay();
+    }
 }, 1000);
 
 // 初期化
@@ -534,5 +405,5 @@ if (document.readyState === 'loading') {
     setTimeout(initializeAnimations, 50);
 }
 
-// 定期的に保存（5秒ごと）
-setInterval(saveGame, 5000);
+// 定期的に保存（10秒ごと - 軽量化）
+setInterval(saveGame, 10000);
