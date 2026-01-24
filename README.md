@@ -6,34 +6,47 @@
 
 ## 🎮 遊び方
 
-1. 中央の大きなボタンをクリックしてポイントを獲得
+1. 中央の大きなボタンをクリック（タップ）してポイントを獲得
 2. 貯まったポイントでアップグレードを購入
-3. 自動生成機能でクリックしなくてもポイントが増える！
+3. 自動クリッカーでクリックしなくてもポイントが増える！
+4. 100万ポイント貯めてリボーンし、倍率ボーナスを獲得！
 
 ## ✨ 機能
 
-- **クリックパワー**: 1クリックあたりの獲得ポイントを増加
-- **自動生成**: 毎秒自動でポイントを獲得
-- **自動クリッカー**: 自動でクリックしてくれる
-- **メガジェネレーター**: 大量のポイントを毎秒生成
-- **自動セーブ**: ブラウザのローカルストレージに進行状況を保存
+### アップグレード
+- **クリックパワー**: 1クリックあたりの獲得ポイントを+1増加
+- **スーパークリックパワー**: 1クリックあたりの獲得ポイントを+5増加
+- **自動クリッカー**: 毎秒+1ポイントを自動獲得
+- **スーパー自動クリッカー**: 毎秒+5ポイントを自動獲得
+- **ハイパー自動クリッカー**: 毎秒+10ポイントを自動獲得
+
+### リボーン機能
+- 100万ポイント（初回）でリボーン可能
+- リボーンすると全てのアップグレードとポイントがリセット
+- 代わりに永続的な倍率ボーナス（+0.5倍）を獲得
+- リボーンコストは毎回2.5倍に増加
+
+### その他
+- **自動セーブ**: ブラウザのローカルストレージに進行状況を自動保存
+- **効果音**: クリック音、購入音、エラー音
+- **モバイル対応**: マルチタッチ対応、軽量化されたアニメーション
 - **アニメーション**: Anime.jsライブラリを使用した滑らかなアニメーション
 
 ## 🚀 プレイ方法
 
 ### オンラインでプレイ
 
-GitHub Pagesでホストされている場合:
+GitHub Pagesでホストされています:
 ```
-https://your-username.github.io/clicker-simulator/
+https://tyatyaneko.github.io/clicker_simulator/
 ```
 
 ### ローカルでプレイ
 
 1. このリポジトリをクローン:
 ```bash
-git clone https://github.com/your-username/clicker-simulator.git
-cd clicker-simulator
+git clone https://github.com/tyatyaneko/clicker_simulator.git
+cd clicker_simulator
 ```
 
 2. `index.html` をブラウザで開く:
@@ -43,12 +56,17 @@ cd clicker-simulator
 ## 📁 ファイル構成
 
 ```
-clicker-simulator/
-├── index.html      # メインHTMLファイル
-├── style.css       # スタイルシート
-├── script.js       # ゲームロジック
-├── logo.svg        # ゲームロゴ
-└── README.md       # このファイル
+clicker_simulator/
+├── index.html          # メインHTMLファイル
+├── style.css           # スタイルシート
+├── script.js           # ゲームロジック
+├── logo.svg            # ゲームロゴ
+├── logo.png            # OGP用ロゴ画像
+├── SoundEffects/       # 効果音フォルダ
+│   ├── Click.mp3       # クリック音
+│   ├── Upgrade.mp3     # 購入成功音
+│   └── Error.mp3       # 購入失敗音
+└── README.md           # このファイル
 ```
 
 ## 🛠️ 技術スタック
@@ -58,18 +76,28 @@ clicker-simulator/
 - **JavaScript (ES6)**: ゲームロジック
 - **[Anime.js](https://animejs.com/)**: アニメーションライブラリ
 - **LocalStorage API**: データ永続化
+- **Web Audio API**: 効果音再生（オーディオプールシステム）
 
 ## 🎨 カスタマイズ
 
-### アップグレードの価格を変更
+### ゲームバランスを変更
 
-`script.js` の `gameState` オブジェクトで初期価格を変更できます:
+`script.js` の `GAME_CONFIG` オブジェクトで各種設定を変更できます:
 
 ```javascript
-let gameState = {
-    clickPowerCost: 10,    // クリックパワーの初期価格
-    autoGenCost: 50,       // 自動生成の初期価格
-    // ...
+const GAME_CONFIG = {
+    // アップグレードの基本コストとコスト倍率
+    clickPower: { baseCost: 10, costMultiplier: 1.5 },
+    superClickPower: { baseCost: 300, costMultiplier: 1.5 },
+    autoClicker: { baseCost: 50, costMultiplier: 1.5 },
+    superAutoClicker: { baseCost: 100, costMultiplier: 1.5 },
+    hyperAutoClicker: { baseCost: 500, costMultiplier: 1.5 },
+    // リボーン設定
+    reborn: {
+        baseCost: 1000000,      // リボーンの初期コスト
+        costMultiplier: 2.5,    // リボーンコストの増加倍率
+        multiplierBonus: 0.5    // リボーンごとに増える倍率
+    }
 };
 ```
 
@@ -79,7 +107,7 @@ let gameState = {
 
 ```css
 body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #66ea83 0%, #4c4ba2 100%);
 }
 ```
 
