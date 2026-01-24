@@ -50,24 +50,44 @@ function playErrorSound() {
     playFromPool('error');
 }
 
-// ゲームの状態
+// ゲーム設定（バランス調整用の定数）
+const GAME_CONFIG = {
+    // アップグレードの基本コストとコスト倍率
+    clickPower: { baseCost: 10, costMultiplier: 1.5 },
+    superClickPower: { baseCost: 300, costMultiplier: 1.5 },
+    autoClicker: { baseCost: 50, costMultiplier: 1.5 },
+    superAutoClicker: { baseCost: 100, costMultiplier: 1.5 },
+    hyperAutoClicker: { baseCost: 500, costMultiplier: 1.5 },
+    // リボーン設定
+    reborn: {
+        baseCost: 1000000,
+        costMultiplier: 2.5,
+        multiplierBonus: 0.5  // リボーンごとに増える倍率
+    }
+};
+
+// ゲームの状態（初期値はGAME_CONFIGから取得）
 let gameState = {
     points: 0,
     clickPower: 1,
     clickPowerLevel: 0,
-    clickPowerCost: 10,
+    clickPowerCost: GAME_CONFIG.clickPower.baseCost,
     superClickPower: 0,
     superClickPowerLevel: 0,
-    superClickPowerCost: 300,
-    autoGen: 0,
-    autoGenLevel: 0,
-    autoGenCost: 50,
+    superClickPowerCost: GAME_CONFIG.superClickPower.baseCost,
     autoClicker: 0,
     autoClickerLevel: 0,
-    autoClickerCost: 100,
-    megaGen: 0,
-    megaGenLevel: 0,
-    megaGenCost: 500,
+    autoClickerCost: GAME_CONFIG.autoClicker.baseCost,
+    superAutoClicker: 0,
+    superAutoClickerLevel: 0,
+    superAutoClickerCost: GAME_CONFIG.superAutoClicker.baseCost,
+    hyperAutoClicker: 0,
+    hyperAutoClickerLevel: 0,
+    hyperAutoClickerCost: GAME_CONFIG.hyperAutoClicker.baseCost,
+    // リボーン関連
+    rebornCount: 0,
+    clickMultiplier: 1,
+    rebornCost: GAME_CONFIG.reborn.baseCost,
 };
 
 // DOM要素の取得
@@ -88,44 +108,83 @@ const elements = {
     buySuperClickPower: document.getElementById('buySuperClickPower'),
 
     // 自動クリッカー
-    autoGenLevel: document.getElementById('autoGenLevel'),
-    autoGenCost: document.getElementById('autoGenCost'),
-    buyAutoGen: document.getElementById('buyAutoGen'),
-
-    // スーパー自動クリッカー
     autoClickerLevel: document.getElementById('autoClickerLevel'),
     autoClickerCost: document.getElementById('autoClickerCost'),
     buyAutoClicker: document.getElementById('buyAutoClicker'),
 
+    // スーパー自動クリッカー
+    superAutoClickerLevel: document.getElementById('superAutoClickerLevel'),
+    superAutoClickerCost: document.getElementById('superAutoClickerCost'),
+    buySuperAutoClicker: document.getElementById('buySuperAutoClicker'),
+
     // ハイパー自動クリッカー
-    megaGenLevel: document.getElementById('megaGenLevel'),
-    megaGenCost: document.getElementById('megaGenCost'),
-    buyMegaGen: document.getElementById('buyMegaGen')
+    hyperAutoClickerLevel: document.getElementById('hyperAutoClickerLevel'),
+    hyperAutoClickerCost: document.getElementById('hyperAutoClickerCost'),
+    buyHyperAutoClicker: document.getElementById('buyHyperAutoClicker')
 };
+
+// レベルからコストを計算
+function calculateCost(baseCost, costMultiplier, level) {
+    return Math.floor(baseCost * Math.pow(costMultiplier, level));
+}
+
+// リボーン回数から倍率を計算
+function calculateMultiplier(rebornCount) {
+    return 1 + (GAME_CONFIG.reborn.multiplierBonus * rebornCount);
+}
+
+// リボーン回数からリボーンコストを計算
+function calculateRebornCost(rebornCount) {
+    return Math.floor(GAME_CONFIG.reborn.baseCost * Math.pow(GAME_CONFIG.reborn.costMultiplier, rebornCount));
+}
 
 // ローカルストレージから読み込み
 function loadGame() {
     const saved = localStorage.getItem('clickerGameState');
     if (saved) {
         const loadedState = JSON.parse(saved);
-        // 新しい項目がない場合はデフォルト値を使用（後から追加された項目に対応）
+
+        // レベルと回数のみをセーブデータから取得（旧変数名からの移行も対応）
+        const clickPowerLevel = loadedState.clickPowerLevel ?? 0;
+        const superClickPowerLevel = loadedState.superClickPowerLevel ?? 0;
+        const autoClickerLevel = loadedState.autoClickerLevel ?? loadedState.autoGenLevel ?? 0;
+        const superAutoClickerLevel = loadedState.superAutoClickerLevel ?? loadedState.autoClickerLevel ?? 0;
+        const hyperAutoClickerLevel = loadedState.hyperAutoClickerLevel ?? loadedState.megaGenLevel ?? 0;
+        const rebornCount = loadedState.rebornCount ?? 0;
+
+        // コストと倍率は現在の設定から再計算
         gameState = {
             points: loadedState.points ?? 0,
-            clickPower: loadedState.clickPower ?? 1,
-            clickPowerLevel: loadedState.clickPowerLevel ?? 0,
-            clickPowerCost: loadedState.clickPowerCost ?? 10,
-            superClickPower: loadedState.superClickPower ?? 0,
-            superClickPowerLevel: loadedState.superClickPowerLevel ?? 0,
-            superClickPowerCost: loadedState.superClickPowerCost ?? 300,
-            autoGen: loadedState.autoGen ?? 0,
-            autoGenLevel: loadedState.autoGenLevel ?? 0,
-            autoGenCost: loadedState.autoGenCost ?? 50,
-            autoClicker: loadedState.autoClicker ?? 0,
-            autoClickerLevel: loadedState.autoClickerLevel ?? 0,
-            autoClickerCost: loadedState.autoClickerCost ?? 100,
-            megaGen: loadedState.megaGen ?? 0,
-            megaGenLevel: loadedState.megaGenLevel ?? 0,
-            megaGenCost: loadedState.megaGenCost ?? 500,
+
+            // クリックパワー
+            clickPower: 1 + clickPowerLevel,  // 1 + レベル数
+            clickPowerLevel: clickPowerLevel,
+            clickPowerCost: calculateCost(GAME_CONFIG.clickPower.baseCost, GAME_CONFIG.clickPower.costMultiplier, clickPowerLevel),
+
+            // スーパークリックパワー
+            superClickPower: superClickPowerLevel * 5,  // レベル × 5
+            superClickPowerLevel: superClickPowerLevel,
+            superClickPowerCost: calculateCost(GAME_CONFIG.superClickPower.baseCost, GAME_CONFIG.superClickPower.costMultiplier, superClickPowerLevel),
+
+            // 自動クリッカー（旧autoGenから移行）
+            autoClicker: loadedState.autoClicker ?? loadedState.autoGen ?? autoClickerLevel,
+            autoClickerLevel: autoClickerLevel,
+            autoClickerCost: calculateCost(GAME_CONFIG.autoClicker.baseCost, GAME_CONFIG.autoClicker.costMultiplier, autoClickerLevel),
+
+            // スーパー自動クリッカー（旧autoClickerから移行）
+            superAutoClicker: loadedState.superAutoClicker ?? superAutoClickerLevel,
+            superAutoClickerLevel: superAutoClickerLevel,
+            superAutoClickerCost: calculateCost(GAME_CONFIG.superAutoClicker.baseCost, GAME_CONFIG.superAutoClicker.costMultiplier, superAutoClickerLevel),
+
+            // ハイパー自動クリッカー（旧megaGenから移行）
+            hyperAutoClicker: loadedState.hyperAutoClicker ?? loadedState.megaGen ?? hyperAutoClickerLevel,
+            hyperAutoClickerLevel: hyperAutoClickerLevel,
+            hyperAutoClickerCost: calculateCost(GAME_CONFIG.hyperAutoClicker.baseCost, GAME_CONFIG.hyperAutoClicker.costMultiplier, hyperAutoClickerLevel),
+
+            // リボーン関連（回数から再計算）
+            rebornCount: rebornCount,
+            clickMultiplier: calculateMultiplier(rebornCount),
+            rebornCost: calculateRebornCost(rebornCount),
         };
         updateDisplay();
     }
@@ -136,13 +195,49 @@ function saveGame() {
     localStorage.setItem('clickerGameState', JSON.stringify(gameState));
 }
 
+// 実際のクリックパワーを計算（リボーンボーナス込み）
+function getEffectiveClickPower() {
+    let totalClickPower = gameState.clickPower + gameState.superClickPower;
+    return totalClickPower * gameState.clickMultiplier;
+}
+
+// 数値を小数点第一位まで表示（整数の場合は.0を付ける）
+function formatNumber(num) {
+    return num.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 // 表示を更新
 function updateDisplay() {
     elements.points.textContent = Math.floor(gameState.points).toLocaleString();
-    let totalClickPower = gameState.clickPower + gameState.superClickPower;
-    elements.clickPower.textContent = totalClickPower;
+    let effectiveClickPower = getEffectiveClickPower();
+    elements.clickPower.textContent = formatNumber(effectiveClickPower);
 
-    const perSecond = gameState.autoGen + gameState.autoClicker * gameState.clickPower + gameState.megaGen * 10;
+    // リボーン回数を表示
+    const rebornDisplay = document.getElementById('rebornCount');
+    if (rebornDisplay) {
+        rebornDisplay.textContent = gameState.rebornCount;
+    }
+
+    // 倍率を表示
+    const multiplierDisplay = document.getElementById('multiplierDisplay');
+    if (multiplierDisplay) {
+        multiplierDisplay.textContent = 'x' + gameState.clickMultiplier.toFixed(1);
+    }
+
+    // リボーンコストを表示
+    const rebornCostDisplay = document.getElementById('rebornCost');
+    if (rebornCostDisplay) {
+        rebornCostDisplay.textContent = gameState.rebornCost.toLocaleString();
+    }
+
+    // 確認ボタンの状態を更新（モーダル内）
+    const confirmBtn = document.getElementById('confirmReborn');
+    if (confirmBtn) {
+        confirmBtn.classList.toggle('insufficient', gameState.points < gameState.rebornCost);
+    }
+
+    // 毎秒の獲得量を計算（リボーン倍率適用）
+    const perSecond = (gameState.autoClicker * 1 + gameState.superAutoClicker * 5 + gameState.hyperAutoClicker * 10) * gameState.clickMultiplier;
     elements.perSecond.textContent = perSecond.toFixed(1);
 
     // クリックパワー
@@ -155,32 +250,32 @@ function updateDisplay() {
     elements.superClickPowerCost.textContent = gameState.superClickPowerCost.toLocaleString();
     elements.buySuperClickPower.classList.toggle('insufficient', gameState.points < gameState.superClickPowerCost);
 
-     // 自動クリッカー
-    elements.autoGenLevel.textContent = gameState.autoGenLevel;
-    elements.autoGenCost.textContent = gameState.autoGenCost.toLocaleString();
-    elements.buyAutoGen.classList.toggle('insufficient', gameState.points < gameState.autoGenCost);
-
-    // スーパー自動クリッカー
+    // 自動クリッカー
     elements.autoClickerLevel.textContent = gameState.autoClickerLevel;
     elements.autoClickerCost.textContent = gameState.autoClickerCost.toLocaleString();
     elements.buyAutoClicker.classList.toggle('insufficient', gameState.points < gameState.autoClickerCost);
 
+    // スーパー自動クリッカー
+    elements.superAutoClickerLevel.textContent = gameState.superAutoClickerLevel;
+    elements.superAutoClickerCost.textContent = gameState.superAutoClickerCost.toLocaleString();
+    elements.buySuperAutoClicker.classList.toggle('insufficient', gameState.points < gameState.superAutoClickerCost);
+
     // ハイパー自動クリッカー
-    elements.megaGenLevel.textContent = gameState.megaGenLevel;
-    elements.megaGenCost.textContent = gameState.megaGenCost.toLocaleString();
-    elements.buyMegaGen.classList.toggle('insufficient', gameState.points < gameState.megaGenCost);
+    elements.hyperAutoClickerLevel.textContent = gameState.hyperAutoClickerLevel;
+    elements.hyperAutoClickerCost.textContent = gameState.hyperAutoClickerCost.toLocaleString();
+    elements.buyHyperAutoClicker.classList.toggle('insufficient', gameState.points < gameState.hyperAutoClickerCost);
 }
 
 // クリック処理の共通関数
 function handleClick(x, y) {
     playClickSound();
 
-    let totalClickPower = gameState.clickPower + gameState.superClickPower;
-    gameState.points += totalClickPower;
+    let effectiveClickPower = getEffectiveClickPower();
+    gameState.points += effectiveClickPower;
     updateDisplay();
 
     // 浮遊テキストのみ表示（波紋エフェクトは削除して軽量化）
-    showFloatingText('+' + totalClickPower, x, y);
+    showFloatingText('+' + formatNumber(effectiveClickPower), x, y);
 }
 
 // PC用クリック処理
@@ -221,11 +316,15 @@ function showFloatingText(text, x, y) {
 
 // クリックパワー購入
 elements.buyClickPower.addEventListener('click', (e) => {
-        if (gameState.points >= gameState.clickPowerCost) {
+    if (gameState.points >= gameState.clickPowerCost) {
         gameState.points -= gameState.clickPowerCost;
         gameState.clickPowerLevel++;
         gameState.clickPower++;
-        gameState.clickPowerCost = Math.floor(gameState.clickPowerCost * 1.5);
+        gameState.clickPowerCost = calculateCost(
+            GAME_CONFIG.clickPower.baseCost,
+            GAME_CONFIG.clickPower.costMultiplier,
+            gameState.clickPowerLevel
+        );
         updateDisplay();
         saveGame();
 
@@ -238,11 +337,15 @@ elements.buyClickPower.addEventListener('click', (e) => {
 
 // スーパークリックパワー購入
 elements.buySuperClickPower.addEventListener('click', (e) => {
-        if (gameState.points >= gameState.superClickPowerCost) {
+    if (gameState.points >= gameState.superClickPowerCost) {
         gameState.points -= gameState.superClickPowerCost;
         gameState.superClickPowerLevel++;
-        gameState.superClickPower += 5;  // +5 クリックパワー
-        gameState.superClickPowerCost = Math.floor(gameState.superClickPowerCost * 1.5);
+        gameState.superClickPower += 5;
+        gameState.superClickPowerCost = calculateCost(
+            GAME_CONFIG.superClickPower.baseCost,
+            GAME_CONFIG.superClickPower.costMultiplier,
+            gameState.superClickPowerLevel
+        );
         updateDisplay();
         saveGame();
 
@@ -254,12 +357,16 @@ elements.buySuperClickPower.addEventListener('click', (e) => {
 });
 
 // 自動クリッカー購入
-elements.buyAutoGen.addEventListener('click', (e) => {
-        if (gameState.points >= gameState.autoGenCost) {
-        gameState.points -= gameState.autoGenCost;
-        gameState.autoGenLevel++;
-        gameState.autoGen++;
-        gameState.autoGenCost = Math.floor(gameState.autoGenCost * 1.5);
+elements.buyAutoClicker.addEventListener('click', (e) => {
+    if (gameState.points >= gameState.autoClickerCost) {
+        gameState.points -= gameState.autoClickerCost;
+        gameState.autoClickerLevel++;
+        gameState.autoClicker++;
+        gameState.autoClickerCost = calculateCost(
+            GAME_CONFIG.autoClicker.baseCost,
+            GAME_CONFIG.autoClicker.costMultiplier,
+            gameState.autoClickerLevel
+        );
         updateDisplay();
         saveGame();
 
@@ -271,12 +378,16 @@ elements.buyAutoGen.addEventListener('click', (e) => {
 });
 
 // スーパー自動クリッカー購入
-elements.buyAutoClicker.addEventListener('click', (e) => {
-        if (gameState.points >= gameState.autoClickerCost) {
-        gameState.points -= gameState.autoClickerCost;
-        gameState.autoClickerLevel++;
-        gameState.autoClicker++;
-        gameState.autoClickerCost = Math.floor(gameState.autoClickerCost * 1.5);
+elements.buySuperAutoClicker.addEventListener('click', (e) => {
+    if (gameState.points >= gameState.superAutoClickerCost) {
+        gameState.points -= gameState.superAutoClickerCost;
+        gameState.superAutoClickerLevel++;
+        gameState.superAutoClicker++;  // 1レベルずつ増加（毎秒計算で×5される）
+        gameState.superAutoClickerCost = calculateCost(
+            GAME_CONFIG.superAutoClicker.baseCost,
+            GAME_CONFIG.superAutoClicker.costMultiplier,
+            gameState.superAutoClickerLevel
+        );
         updateDisplay();
         saveGame();
 
@@ -288,12 +399,16 @@ elements.buyAutoClicker.addEventListener('click', (e) => {
 });
 
 // ハイパー自動クリッカー購入
-elements.buyMegaGen.addEventListener('click', (e) => {
-        if (gameState.points >= gameState.megaGenCost) {
-        gameState.points -= gameState.megaGenCost;
-        gameState.megaGenLevel++;
-        gameState.megaGen++;
-        gameState.megaGenCost = Math.floor(gameState.megaGenCost * 1.5);
+elements.buyHyperAutoClicker.addEventListener('click', (e) => {
+    if (gameState.points >= gameState.hyperAutoClickerCost) {
+        gameState.points -= gameState.hyperAutoClickerCost;
+        gameState.hyperAutoClickerLevel++;
+        gameState.hyperAutoClicker++;
+        gameState.hyperAutoClickerCost = calculateCost(
+            GAME_CONFIG.hyperAutoClicker.baseCost,
+            GAME_CONFIG.hyperAutoClicker.costMultiplier,
+            gameState.hyperAutoClickerLevel
+        );
         updateDisplay();
         saveGame();
 
@@ -314,12 +429,85 @@ function purchaseAnimation(button) {
 
 // 自動クリックループ（1秒ごと）
 setInterval(() => {
-    const perSecond = gameState.autoGen + gameState.autoClicker * gameState.clickPower + gameState.megaGen * 10;
+    const perSecond = (gameState.autoClicker * 1 + gameState.superAutoClicker * 5 + gameState.hyperAutoClicker * 10) * gameState.clickMultiplier;
     if (perSecond > 0) {
         gameState.points += perSecond;
         updateDisplay();
     }
 }, 1000);
+
+// リボーン機能
+const rebornModal = document.getElementById('rebornModal');
+const rebornButton = document.getElementById('rebornButton');
+const confirmReborn = document.getElementById('confirmReborn');
+const cancelReborn = document.getElementById('cancelReborn');
+
+// 次のリボーン倍率を計算（設定から取得）
+function getNextMultiplier() {
+    return gameState.clickMultiplier + GAME_CONFIG.reborn.multiplierBonus;
+}
+
+// モーダルを開く（常に開ける）
+rebornButton.addEventListener('click', () => {
+    document.getElementById('currentMultiplier').textContent = 'x' + gameState.clickMultiplier.toFixed(1);
+    document.getElementById('nextMultiplier').textContent = 'x' + getNextMultiplier().toFixed(1);
+    document.getElementById('rebornCostModal').textContent = gameState.rebornCost.toLocaleString();
+
+    // 確認ボタンの状態を更新
+    const confirmBtn = document.getElementById('confirmReborn');
+    confirmBtn.classList.toggle('insufficient', gameState.points < gameState.rebornCost);
+
+    rebornModal.classList.add('show');
+});
+
+// リボーン実行
+confirmReborn.addEventListener('click', () => {
+    if (gameState.points < gameState.rebornCost) {
+        playErrorSound();
+        return;
+    }
+
+    gameState.rebornCount++;
+    gameState.clickMultiplier = calculateMultiplier(gameState.rebornCount);
+    gameState.rebornCost = calculateRebornCost(gameState.rebornCount);
+
+    // アップグレードとポイントをリセット（GAME_CONFIGから基本値を取得）
+    gameState.points = 0;
+    gameState.clickPower = 1;
+    gameState.clickPowerLevel = 0;
+    gameState.clickPowerCost = GAME_CONFIG.clickPower.baseCost;
+    gameState.superClickPower = 0;
+    gameState.superClickPowerLevel = 0;
+    gameState.superClickPowerCost = GAME_CONFIG.superClickPower.baseCost;
+    gameState.autoClicker = 0;
+    gameState.autoClickerLevel = 0;
+    gameState.autoClickerCost = GAME_CONFIG.autoClicker.baseCost;
+    gameState.superAutoClicker = 0;
+    gameState.superAutoClickerLevel = 0;
+    gameState.superAutoClickerCost = GAME_CONFIG.superAutoClicker.baseCost;
+    gameState.hyperAutoClicker = 0;
+    gameState.hyperAutoClickerLevel = 0;
+    gameState.hyperAutoClickerCost = GAME_CONFIG.hyperAutoClicker.baseCost;
+
+    saveGame();
+    updateDisplay();
+
+    rebornModal.classList.remove('show');
+
+    playPurchaseSound();
+});
+
+// キャンセル
+cancelReborn.addEventListener('click', () => {
+    rebornModal.classList.remove('show');
+});
+
+// モーダル外クリックで閉じる
+rebornModal.addEventListener('click', (e) => {
+    if (e.target === rebornModal) {
+        rebornModal.classList.remove('show');
+    }
+});
 
 // 初期化
 loadGame();
@@ -327,17 +515,14 @@ updateDisplay();
 
 // アニメーションの初期化
 function initializeAnimations() {
-    // Anime.jsが読み込まれているか確認
     if (typeof anime === 'undefined') {
         console.error('Anime.js is not loaded!');
-        // アニメーションなしで即座に表示
         document.querySelectorAll('.logo-container, h1, .stats, .click-button, .upgrade-card').forEach(el => {
             el.style.opacity = '1';
         });
         return;
     }
 
-    // ロゴクリックでバウンスアニメーション
     const logo = document.querySelector('.game-logo');
     if (logo) {
         logo.addEventListener('click', () => {
@@ -351,7 +536,6 @@ function initializeAnimations() {
         });
     }
 
-    // ページ読み込み時のアニメーション
     anime({
         targets: '.logo-container',
         translateY: [-50, 0],
@@ -397,11 +581,10 @@ function initializeAnimations() {
     });
 }
 
-// アニメーションを実行（少し遅延させて確実に実行）
+// アニメーションを実行
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeAnimations);
 } else {
-    // DOMが既に読み込まれている場合は即座に実行
     setTimeout(initializeAnimations, 50);
 }
 

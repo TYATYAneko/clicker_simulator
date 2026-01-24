@@ -263,3 +263,204 @@ h1 {
         filter: brightness(1);
     }
 }
+
+/* リボーンセクション */
+.reborn-section {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.reborn-section h2 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.reborn-description {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+}
+
+.reborn-cost {
+    color: white;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
+.multiplier-info {
+    color: #ffd700;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.reborn-cost-modal {
+    margin-top: 10px;
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.reborn-button {
+    background: white;
+    color: #ee5a24;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+
+.reborn-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.reborn-button:active {
+    transform: scale(0.95);
+}
+
+/* モーダル */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-content h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.modal-info {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.warning {
+    color: #e74c3c;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.reset-list {
+    color: #666;
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.reset-list li {
+    margin-bottom: 5px;
+}
+
+.bonus-title {
+    color: #27ae60;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.bonus-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.bonus-info p {
+    margin: 5px 0;
+    font-size: 1.1em;
+}
+
+#currentMultiplier {
+    color: #667eea;
+    font-weight: bold;
+}
+
+#nextMultiplier {
+    color: #27ae60;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.confirm-button {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.confirm-button:hover {
+    transform: scale(1.05);
+}
+
+.confirm-button.insufficient {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.confirm-button.insufficient:hover {
+    transform: none;
+}
+
+.cancel-button {
+    background: #ccc;
+    color: #333;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.cancel-button:hover {
+    transform: scale(1.05);
+}

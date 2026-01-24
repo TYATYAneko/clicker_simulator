@@ -11,6 +11,7 @@
     <meta name="description" content="AIに作らせたクリッカーシミュレーターです">
     <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link rel="stylesheet" href="style.css">
+    
 </head>
 <body>
     <!-- Anime.js ライブラリの読み込み -->
@@ -30,12 +31,17 @@
                 <span class="stat-label">毎秒:</span>
                 <span class="stat-value" id="perSecond">0</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-label">リボーン:</span>
+                <span class="stat-value" id="rebornCount">0</span>
+            </div>
         </div>
 
         <div class="click-area">
             <button id="clickButton" class="click-button">クリック!</button>
             <div class="click-info">
                 <p>1クリック = <span id="clickPower">1</span> ポイント</p>
+                <p class="multiplier-info">倍率: <span id="multiplierDisplay">x1.0</span></p>
             </div>
         </div>
 
@@ -74,12 +80,12 @@
                 <div class="upgrade-info">
                     <h3>自動クリッカー</h3>
                     <p>自動クリックの獲得量を増やす</p>
-                    <p class="upgrade-level">レベル: <span id="autoGenLevel">0</span></p>
+                    <p class="upgrade-level">レベル: <span id="autoClickerLevel">0</span></p>
                 </div>
                 <div class="upgrade-action">
                     <p class="upgrade-effect">+1 自動クリック/秒</p>
-                    <button id="buyAutoGen" class="upgrade-button">
-                        購入: <span id="autoGenCost">50</span>
+                    <button id="buyAutoClicker" class="upgrade-button">
+                        購入: <span id="autoClickerCost">50</span>
                     </button>
                 </div>
             </div>
@@ -88,12 +94,12 @@
                 <div class="upgrade-info">
                     <h3>スーパー自動クリッカー</h3>
                     <p>自動クリックの獲得量を多く増やす</p>
-                    <p class="upgrade-level">レベル: <span id="autoClickerLevel">0</span></p>
+                    <p class="upgrade-level">レベル: <span id="superAutoClickerLevel">0</span></p>
                 </div>
                 <div class="upgrade-action">
-                    <p class="upgrade-effect">+3 自動クリック/秒</p>
-                    <button id="buyAutoClicker" class="upgrade-button">
-                        購入: <span id="autoClickerCost">100</span>
+                    <p class="upgrade-effect">+5 自動クリック/秒</p>
+                    <button id="buySuperAutoClicker" class="upgrade-button">
+                        購入: <span id="superAutoClickerCost">100</span>
                     </button>
                 </div>
             </div>
@@ -102,14 +108,46 @@
                 <div class="upgrade-info">
                     <h3>ハイパー自動クリッカー</h3>
                     <p>自動クリックの獲得量をとても多く増やす</p>
-                    <p class="upgrade-level">レベル: <span id="megaGenLevel">0</span></p>
+                    <p class="upgrade-level">レベル: <span id="hyperAutoClickerLevel">0</span></p>
                 </div>
                 <div class="upgrade-action">
                     <p class="upgrade-effect">+10 自動クリック/秒</p>
-                    <button id="buyMegaGen" class="upgrade-button">
-                        購入: <span id="megaGenCost">500</span>
+                    <button id="buyHyperAutoClicker" class="upgrade-button">
+                        購入: <span id="hyperAutoClickerCost">500</span>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- リボーンセクション -->
+        <div class="reborn-section">
+            <h2>🔄 リボーン</h2>
+            <p class="reborn-description">全てをリセットして、より強力なボーナスを得る</p>
+            <p class="reborn-cost">コスト: <span id="rebornCost">1,000,000</span> ポイント</p>
+            <button id="rebornButton" class="reborn-button">リボーンする</button>
+        </div>
+    </div>
+
+    <!-- リボーン確認モーダル -->
+    <div id="rebornModal" class="modal">
+        <div class="modal-content">
+            <h2>🔄 リボーン確認</h2>
+            <div class="modal-info">
+                <p class="warning">⚠️ 以下の項目がリセットされます:</p>
+                <ul class="reset-list">
+                    <li>ポイント</li>
+                    <li>全てのアップグレード</li>
+                </ul>
+                <p class="bonus-title">✨ リボーン後のボーナス:</p>
+                <div class="bonus-info">
+                    <p>現在の倍率: <span id="currentMultiplier">x1.0</span></p>
+                    <p>リボーン後: <span id="nextMultiplier">x2.0</span></p>
+                    <p class="reborn-cost-modal">必要ポイント: <span id="rebornCostModal">1,000,000</span></p>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="confirmReborn" class="confirm-button">リボーンする</button>
+                <button id="cancelReborn" class="cancel-button">キャンセル</button>
             </div>
         </div>
     </div>
