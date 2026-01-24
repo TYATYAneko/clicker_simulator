@@ -90,38 +90,8 @@ let gameState = {
     rebornCost: GAME_CONFIG.reborn.baseCost,
 };
 
-// DOM要素の取得
-const elements = {
-    points: document.getElementById('points'),
-    perSecond: document.getElementById('perSecond'),
-    clickPower: document.getElementById('clickPower'),
-    clickButton: document.getElementById('clickButton'),
-
-    // クリックパワー
-    clickPowerLevel: document.getElementById('clickPowerLevel'),
-    clickPowerCost: document.getElementById('clickPowerCost'),
-    buyClickPower: document.getElementById('buyClickPower'),
-
-    // スーパークリックパワー
-    superClickPowerLevel: document.getElementById('superClickPowerLevel'),
-    superClickPowerCost: document.getElementById('superClickPowerCost'),
-    buySuperClickPower: document.getElementById('buySuperClickPower'),
-
-    // 自動クリッカー
-    autoClickerLevel: document.getElementById('autoClickerLevel'),
-    autoClickerCost: document.getElementById('autoClickerCost'),
-    buyAutoClicker: document.getElementById('buyAutoClicker'),
-
-    // スーパー自動クリッカー
-    superAutoClickerLevel: document.getElementById('superAutoClickerLevel'),
-    superAutoClickerCost: document.getElementById('superAutoClickerCost'),
-    buySuperAutoClicker: document.getElementById('buySuperAutoClicker'),
-
-    // ハイパー自動クリッカー
-    hyperAutoClickerLevel: document.getElementById('hyperAutoClickerLevel'),
-    hyperAutoClickerCost: document.getElementById('hyperAutoClickerCost'),
-    buyHyperAutoClicker: document.getElementById('buyHyperAutoClicker')
-};
+// DOM要素（後で初期化）
+let elements = {};
 
 // レベルからコストを計算
 function calculateCost(baseCost, costMultiplier, level) {
@@ -186,7 +156,6 @@ function loadGame() {
             clickMultiplier: calculateMultiplier(rebornCount),
             rebornCost: calculateRebornCost(rebornCount),
         };
-        updateDisplay();
     }
 }
 
@@ -278,26 +247,6 @@ function handleClick(x, y) {
     showFloatingText('+' + formatNumber(effectiveClickPower), x, y);
 }
 
-// PC用クリック処理
-elements.clickButton.addEventListener('click', (e) => {
-    // タッチデバイスの場合はtouchstartで処理するのでスキップ
-    if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) {
-        return;
-    }
-    handleClick(e.clientX, e.clientY);
-});
-
-// スマホ用マルチタッチ処理
-elements.clickButton.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // デフォルトの動作を防ぐ
-
-    // 全てのタッチポイントに対してクリック処理を実行
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
-        handleClick(touch.clientX, touch.clientY);
-    }
-}, { passive: false });
-
 // 浮遊テキストを表示（CSSアニメーション使用で軽量化）
 function showFloatingText(text, x, y) {
     const floatingText = document.createElement('div');
@@ -314,111 +263,6 @@ function showFloatingText(text, x, y) {
     }, 600);
 }
 
-// クリックパワー購入
-elements.buyClickPower.addEventListener('click', (e) => {
-    if (gameState.points >= gameState.clickPowerCost) {
-        gameState.points -= gameState.clickPowerCost;
-        gameState.clickPowerLevel++;
-        gameState.clickPower++;
-        gameState.clickPowerCost = calculateCost(
-            GAME_CONFIG.clickPower.baseCost,
-            GAME_CONFIG.clickPower.costMultiplier,
-            gameState.clickPowerLevel
-        );
-        updateDisplay();
-        saveGame();
-
-        playPurchaseSound();
-        purchaseAnimation(e.currentTarget);
-    } else {
-        playErrorSound();
-    }
-});
-
-// スーパークリックパワー購入
-elements.buySuperClickPower.addEventListener('click', (e) => {
-    if (gameState.points >= gameState.superClickPowerCost) {
-        gameState.points -= gameState.superClickPowerCost;
-        gameState.superClickPowerLevel++;
-        gameState.superClickPower += 5;
-        gameState.superClickPowerCost = calculateCost(
-            GAME_CONFIG.superClickPower.baseCost,
-            GAME_CONFIG.superClickPower.costMultiplier,
-            gameState.superClickPowerLevel
-        );
-        updateDisplay();
-        saveGame();
-
-        playPurchaseSound();
-        purchaseAnimation(e.currentTarget);
-    } else {
-        playErrorSound();
-    }
-});
-
-// 自動クリッカー購入
-elements.buyAutoClicker.addEventListener('click', (e) => {
-    if (gameState.points >= gameState.autoClickerCost) {
-        gameState.points -= gameState.autoClickerCost;
-        gameState.autoClickerLevel++;
-        gameState.autoClicker++;
-        gameState.autoClickerCost = calculateCost(
-            GAME_CONFIG.autoClicker.baseCost,
-            GAME_CONFIG.autoClicker.costMultiplier,
-            gameState.autoClickerLevel
-        );
-        updateDisplay();
-        saveGame();
-
-        playPurchaseSound();
-        purchaseAnimation(e.currentTarget);
-    } else {
-        playErrorSound();
-    }
-});
-
-// スーパー自動クリッカー購入
-elements.buySuperAutoClicker.addEventListener('click', (e) => {
-    if (gameState.points >= gameState.superAutoClickerCost) {
-        gameState.points -= gameState.superAutoClickerCost;
-        gameState.superAutoClickerLevel++;
-        gameState.superAutoClicker++;  // 1レベルずつ増加（毎秒計算で×5される）
-        gameState.superAutoClickerCost = calculateCost(
-            GAME_CONFIG.superAutoClicker.baseCost,
-            GAME_CONFIG.superAutoClicker.costMultiplier,
-            gameState.superAutoClickerLevel
-        );
-        updateDisplay();
-        saveGame();
-
-        playPurchaseSound();
-        purchaseAnimation(e.currentTarget);
-    } else {
-        playErrorSound();
-    }
-});
-
-// ハイパー自動クリッカー購入
-elements.buyHyperAutoClicker.addEventListener('click', (e) => {
-    if (gameState.points >= gameState.hyperAutoClickerCost) {
-        gameState.points -= gameState.hyperAutoClickerCost;
-        gameState.hyperAutoClickerLevel++;
-        gameState.hyperAutoClicker++;
-        gameState.hyperAutoClickerCost = calculateCost(
-            GAME_CONFIG.hyperAutoClicker.baseCost,
-            GAME_CONFIG.hyperAutoClicker.costMultiplier,
-            gameState.hyperAutoClickerLevel
-        );
-        updateDisplay();
-        saveGame();
-
-        playPurchaseSound();
-        purchaseAnimation(e.currentTarget);
-    } else {
-        playErrorSound();
-    }
-});
-
 // 購入成功アニメーション（CSSクラスで軽量化）
 function purchaseAnimation(button) {
     button.classList.add('purchase-flash');
@@ -427,91 +271,10 @@ function purchaseAnimation(button) {
     }, 300);
 }
 
-// 自動クリックループ（1秒ごと）
-setInterval(() => {
-    const perSecond = (gameState.autoClicker * 1 + gameState.superAutoClicker * 5 + gameState.hyperAutoClicker * 10) * gameState.clickMultiplier;
-    if (perSecond > 0) {
-        gameState.points += perSecond;
-        updateDisplay();
-    }
-}, 1000);
-
-// リボーン機能
-const rebornModal = document.getElementById('rebornModal');
-const rebornButton = document.getElementById('rebornButton');
-const confirmReborn = document.getElementById('confirmReborn');
-const cancelReborn = document.getElementById('cancelReborn');
-
 // 次のリボーン倍率を計算（設定から取得）
 function getNextMultiplier() {
     return gameState.clickMultiplier + GAME_CONFIG.reborn.multiplierBonus;
 }
-
-// モーダルを開く（常に開ける）
-rebornButton.addEventListener('click', () => {
-    document.getElementById('currentMultiplier').textContent = 'x' + gameState.clickMultiplier.toFixed(1);
-    document.getElementById('nextMultiplier').textContent = 'x' + getNextMultiplier().toFixed(1);
-    document.getElementById('rebornCostModal').textContent = gameState.rebornCost.toLocaleString();
-
-    // 確認ボタンの状態を更新
-    const confirmBtn = document.getElementById('confirmReborn');
-    confirmBtn.classList.toggle('insufficient', gameState.points < gameState.rebornCost);
-
-    rebornModal.classList.add('show');
-});
-
-// リボーン実行
-confirmReborn.addEventListener('click', () => {
-    if (gameState.points < gameState.rebornCost) {
-        playErrorSound();
-        return;
-    }
-
-    gameState.rebornCount++;
-    gameState.clickMultiplier = calculateMultiplier(gameState.rebornCount);
-    gameState.rebornCost = calculateRebornCost(gameState.rebornCount);
-
-    // アップグレードとポイントをリセット（GAME_CONFIGから基本値を取得）
-    gameState.points = 0;
-    gameState.clickPower = 1;
-    gameState.clickPowerLevel = 0;
-    gameState.clickPowerCost = GAME_CONFIG.clickPower.baseCost;
-    gameState.superClickPower = 0;
-    gameState.superClickPowerLevel = 0;
-    gameState.superClickPowerCost = GAME_CONFIG.superClickPower.baseCost;
-    gameState.autoClicker = 0;
-    gameState.autoClickerLevel = 0;
-    gameState.autoClickerCost = GAME_CONFIG.autoClicker.baseCost;
-    gameState.superAutoClicker = 0;
-    gameState.superAutoClickerLevel = 0;
-    gameState.superAutoClickerCost = GAME_CONFIG.superAutoClicker.baseCost;
-    gameState.hyperAutoClicker = 0;
-    gameState.hyperAutoClickerLevel = 0;
-    gameState.hyperAutoClickerCost = GAME_CONFIG.hyperAutoClicker.baseCost;
-
-    saveGame();
-    updateDisplay();
-
-    rebornModal.classList.remove('show');
-
-    playPurchaseSound();
-});
-
-// キャンセル
-cancelReborn.addEventListener('click', () => {
-    rebornModal.classList.remove('show');
-});
-
-// モーダル外クリックで閉じる
-rebornModal.addEventListener('click', (e) => {
-    if (e.target === rebornModal) {
-        rebornModal.classList.remove('show');
-    }
-});
-
-// 初期化
-loadGame();
-updateDisplay();
 
 // アニメーションの初期化
 function initializeAnimations() {
@@ -581,12 +344,257 @@ function initializeAnimations() {
     });
 }
 
-// アニメーションを実行
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeAnimations);
-} else {
+// ゲーム初期化（DOMが読み込まれた後に実行）
+function initializeGame() {
+    // DOM要素の取得
+    elements = {
+        points: document.getElementById('points'),
+        perSecond: document.getElementById('perSecond'),
+        clickPower: document.getElementById('clickPower'),
+        clickButton: document.getElementById('clickButton'),
+
+        // クリックパワー
+        clickPowerLevel: document.getElementById('clickPowerLevel'),
+        clickPowerCost: document.getElementById('clickPowerCost'),
+        buyClickPower: document.getElementById('buyClickPower'),
+
+        // スーパークリックパワー
+        superClickPowerLevel: document.getElementById('superClickPowerLevel'),
+        superClickPowerCost: document.getElementById('superClickPowerCost'),
+        buySuperClickPower: document.getElementById('buySuperClickPower'),
+
+        // 自動クリッカー
+        autoClickerLevel: document.getElementById('autoClickerLevel'),
+        autoClickerCost: document.getElementById('autoClickerCost'),
+        buyAutoClicker: document.getElementById('buyAutoClicker'),
+
+        // スーパー自動クリッカー
+        superAutoClickerLevel: document.getElementById('superAutoClickerLevel'),
+        superAutoClickerCost: document.getElementById('superAutoClickerCost'),
+        buySuperAutoClicker: document.getElementById('buySuperAutoClicker'),
+
+        // ハイパー自動クリッカー
+        hyperAutoClickerLevel: document.getElementById('hyperAutoClickerLevel'),
+        hyperAutoClickerCost: document.getElementById('hyperAutoClickerCost'),
+        buyHyperAutoClicker: document.getElementById('buyHyperAutoClicker')
+    };
+
+    // リボーン関連のDOM要素
+    const rebornModal = document.getElementById('rebornModal');
+    const rebornButton = document.getElementById('rebornButton');
+    const confirmReborn = document.getElementById('confirmReborn');
+    const cancelReborn = document.getElementById('cancelReborn');
+
+    // PC用クリック処理
+    elements.clickButton.addEventListener('click', (e) => {
+        // タッチデバイスの場合はtouchstartで処理するのでスキップ
+        if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) {
+            return;
+        }
+        handleClick(e.clientX, e.clientY);
+    });
+
+    // スマホ用マルチタッチ処理
+    elements.clickButton.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // デフォルトの動作を防ぐ
+
+        // 全てのタッチポイントに対してクリック処理を実行
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            handleClick(touch.clientX, touch.clientY);
+        }
+    }, { passive: false });
+
+    // クリックパワー購入
+    elements.buyClickPower.addEventListener('click', (e) => {
+        if (gameState.points >= gameState.clickPowerCost) {
+            gameState.points -= gameState.clickPowerCost;
+            gameState.clickPowerLevel++;
+            gameState.clickPower++;
+            gameState.clickPowerCost = calculateCost(
+                GAME_CONFIG.clickPower.baseCost,
+                GAME_CONFIG.clickPower.costMultiplier,
+                gameState.clickPowerLevel
+            );
+            updateDisplay();
+            saveGame();
+
+            playPurchaseSound();
+            purchaseAnimation(e.currentTarget);
+        } else {
+            playErrorSound();
+        }
+    });
+
+    // スーパークリックパワー購入
+    elements.buySuperClickPower.addEventListener('click', (e) => {
+        if (gameState.points >= gameState.superClickPowerCost) {
+            gameState.points -= gameState.superClickPowerCost;
+            gameState.superClickPowerLevel++;
+            gameState.superClickPower += 5;
+            gameState.superClickPowerCost = calculateCost(
+                GAME_CONFIG.superClickPower.baseCost,
+                GAME_CONFIG.superClickPower.costMultiplier,
+                gameState.superClickPowerLevel
+            );
+            updateDisplay();
+            saveGame();
+
+            playPurchaseSound();
+            purchaseAnimation(e.currentTarget);
+        } else {
+            playErrorSound();
+        }
+    });
+
+    // 自動クリッカー購入
+    elements.buyAutoClicker.addEventListener('click', (e) => {
+        if (gameState.points >= gameState.autoClickerCost) {
+            gameState.points -= gameState.autoClickerCost;
+            gameState.autoClickerLevel++;
+            gameState.autoClicker++;
+            gameState.autoClickerCost = calculateCost(
+                GAME_CONFIG.autoClicker.baseCost,
+                GAME_CONFIG.autoClicker.costMultiplier,
+                gameState.autoClickerLevel
+            );
+            updateDisplay();
+            saveGame();
+
+            playPurchaseSound();
+            purchaseAnimation(e.currentTarget);
+        } else {
+            playErrorSound();
+        }
+    });
+
+    // スーパー自動クリッカー購入
+    elements.buySuperAutoClicker.addEventListener('click', (e) => {
+        if (gameState.points >= gameState.superAutoClickerCost) {
+            gameState.points -= gameState.superAutoClickerCost;
+            gameState.superAutoClickerLevel++;
+            gameState.superAutoClicker++;  // 1レベルずつ増加（毎秒計算で×5される）
+            gameState.superAutoClickerCost = calculateCost(
+                GAME_CONFIG.superAutoClicker.baseCost,
+                GAME_CONFIG.superAutoClicker.costMultiplier,
+                gameState.superAutoClickerLevel
+            );
+            updateDisplay();
+            saveGame();
+
+            playPurchaseSound();
+            purchaseAnimation(e.currentTarget);
+        } else {
+            playErrorSound();
+        }
+    });
+
+    // ハイパー自動クリッカー購入
+    elements.buyHyperAutoClicker.addEventListener('click', (e) => {
+        if (gameState.points >= gameState.hyperAutoClickerCost) {
+            gameState.points -= gameState.hyperAutoClickerCost;
+            gameState.hyperAutoClickerLevel++;
+            gameState.hyperAutoClicker++;
+            gameState.hyperAutoClickerCost = calculateCost(
+                GAME_CONFIG.hyperAutoClicker.baseCost,
+                GAME_CONFIG.hyperAutoClicker.costMultiplier,
+                gameState.hyperAutoClickerLevel
+            );
+            updateDisplay();
+            saveGame();
+
+            playPurchaseSound();
+            purchaseAnimation(e.currentTarget);
+        } else {
+            playErrorSound();
+        }
+    });
+
+    // モーダルを開く（常に開ける）
+    rebornButton.addEventListener('click', () => {
+        document.getElementById('currentMultiplier').textContent = 'x' + gameState.clickMultiplier.toFixed(1);
+        document.getElementById('nextMultiplier').textContent = 'x' + getNextMultiplier().toFixed(1);
+        document.getElementById('rebornCostModal').textContent = gameState.rebornCost.toLocaleString();
+
+        // 確認ボタンの状態を更新
+        const confirmBtn = document.getElementById('confirmReborn');
+        confirmBtn.classList.toggle('insufficient', gameState.points < gameState.rebornCost);
+
+        rebornModal.classList.add('show');
+    });
+
+    // リボーン実行
+    confirmReborn.addEventListener('click', () => {
+        if (gameState.points < gameState.rebornCost) {
+            playErrorSound();
+            return;
+        }
+
+        gameState.rebornCount++;
+        gameState.clickMultiplier = calculateMultiplier(gameState.rebornCount);
+        gameState.rebornCost = calculateRebornCost(gameState.rebornCount);
+
+        // アップグレードとポイントをリセット（GAME_CONFIGから基本値を取得）
+        gameState.points = 0;
+        gameState.clickPower = 1;
+        gameState.clickPowerLevel = 0;
+        gameState.clickPowerCost = GAME_CONFIG.clickPower.baseCost;
+        gameState.superClickPower = 0;
+        gameState.superClickPowerLevel = 0;
+        gameState.superClickPowerCost = GAME_CONFIG.superClickPower.baseCost;
+        gameState.autoClicker = 0;
+        gameState.autoClickerLevel = 0;
+        gameState.autoClickerCost = GAME_CONFIG.autoClicker.baseCost;
+        gameState.superAutoClicker = 0;
+        gameState.superAutoClickerLevel = 0;
+        gameState.superAutoClickerCost = GAME_CONFIG.superAutoClicker.baseCost;
+        gameState.hyperAutoClicker = 0;
+        gameState.hyperAutoClickerLevel = 0;
+        gameState.hyperAutoClickerCost = GAME_CONFIG.hyperAutoClicker.baseCost;
+
+        saveGame();
+        updateDisplay();
+
+        rebornModal.classList.remove('show');
+
+        playPurchaseSound();
+    });
+
+    // キャンセル
+    cancelReborn.addEventListener('click', () => {
+        rebornModal.classList.remove('show');
+    });
+
+    // モーダル外クリックで閉じる
+    rebornModal.addEventListener('click', (e) => {
+        if (e.target === rebornModal) {
+            rebornModal.classList.remove('show');
+        }
+    });
+
+    // セーブデータ読み込み
+    loadGame();
+    updateDisplay();
+
+    // 自動クリックループ（1秒ごと）
+    setInterval(() => {
+        const perSecond = (gameState.autoClicker * 1 + gameState.superAutoClicker * 5 + gameState.hyperAutoClicker * 10) * gameState.clickMultiplier;
+        if (perSecond > 0) {
+            gameState.points += perSecond;
+            updateDisplay();
+        }
+    }, 1000);
+
+    // 定期的に保存（10秒ごと - 軽量化）
+    setInterval(saveGame, 10000);
+
+    // アニメーションを実行
     setTimeout(initializeAnimations, 50);
 }
 
-// 定期的に保存（10秒ごと - 軽量化）
-setInterval(saveGame, 10000);
+// DOMが読み込まれたら初期化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeGame);
+} else {
+    initializeGame();
+}
